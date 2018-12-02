@@ -34,3 +34,6 @@ paket-files/
 
 # FAKE - F# Make
 .fake/
+
+# Other
+data.txt
