@@ -20,28 +20,33 @@ module Day3 =
             printfn "Invalid input: %s" str
             None
 
+    let isInClaim claim x y : bool =
+        claim.PosX <= x && x < (claim.PosX + claim.SizeX) &&
+            claim.PosY <= y && y < (claim.PosY + claim.SizeY)
 
-    let isInClaim claim x y : int =
-        if (claim.PosX <= x && x < (claim.PosX + claim.SizeX) ) &&
-            (claim.PosY <= y && y < (claim.PosY + claim.SizeY) )
-        then 1
-        else 0
-
-    let toArray claim : int[,] =
-        Array2D.init 1000 1000 (isInClaim claim)
-
-    let add2dArrays (arr1:int[,]) (arr2:int[,]) : int[,] =
-        Array2D.mapi (fun x y i -> i + arr2.[x,y]) arr1
+    let rec isContested claims claimed x y : bool =
+        match claims with
+        | first::rest ->
+            match (claimed, isInClaim first x y) with
+            | true, true -> true
+            | false, true -> isContested rest true x y 
+            | _, false -> isContested rest claimed x y
+        | [] -> false
 
     let part1 filename =
-        Common.readLines filename
+        let claims = (Common.readLines filename
             |> Seq.choose parseClaim
-            |> Seq.fold (fun state other -> add2dArrays state (toArray other)) (toArray emptyClaim)
-            |> Seq.cast
-            |> Seq.filter (fun i -> i > 1)
-            |> Seq.length
-            |> printfn "Overlapping squares=%i"
+            |> Seq.toList)
 
+        seq {
+            for x in 0..1000 do
+                for y in 0..1000 do
+                    yield (x,y)
+        }
+        |> Seq.map (fun (x,y) -> isContested claims false x y)
+        |> Seq.filter id
+        |> Seq.length
+        |> printfn "Overlapping squares=%i"
 
     let valuesOverlap min1 max1 min2 max2 : bool =
         (min2 <= min1 && min1 < max2) ||
@@ -75,4 +80,4 @@ module Day3 =
             |> string
             |> printfn "Intact claim=%s"
 
-    part2 "data.txt"    
+    part1 "data.txt"    
